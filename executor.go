@@ -53,9 +53,7 @@ func New[T any, R any](ctx context.Context, consumer func(context.Context, T) (R
 		abortOnError: true,
 	}
 
-	pool, _ := ants.NewPool(workerNum,
-		ants.WithNonblocking(true),
-	)
+	pool, _ := ants.NewPool(workerNum)
 
 	go func() {
 		defer func() {
