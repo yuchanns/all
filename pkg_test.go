@@ -173,8 +173,5 @@ func TestCollect(t *testing.T) {
 
 	require.Nil(t, err)
 
-	slices.Sort(expected)
-	slices.Sort(results)
-
 	require.Equal(t, expected, results)
 }
