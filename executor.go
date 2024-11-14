@@ -99,7 +99,7 @@ func New[T any, R any](ctx context.Context, consumer func(context.Context, T) (R
 
 		for item := range x.input.Out {
 			wg.Add(1)
-			pool.Submit(func() {
+			_ = pool.Submit(func() {
 				var err error
 
 				defer func() {
