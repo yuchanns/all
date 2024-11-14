@@ -1,3 +1,18 @@
+/*
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+
+// Package all provides a parallelism tool library for executing tasks with a specified number of workers.
 package all
 
 import (
@@ -33,12 +48,30 @@ type executor[T any, R any] struct {
 	err    error
 }
 
+// NewVoid creates a new executor that processes tasks without returning any result.
+//
+// Parameters:
+// - ctx: The context for managing the lifecycle of the executor.
+// - consumer: The function to process each task.
+// - workers: Optional number of workers to process tasks concurrently.
+//
+// Returns:
+// - A pointer to the created executor.
 func NewVoid[T any](ctx context.Context, consumer func(context.Context, T) error, workers ...uint) *executor[T, struct{}] {
 	return New(ctx, func(ctx context.Context, item T) (struct{}, error) {
 		return struct{}{}, consumer(ctx, item)
 	}, workers...)
 }
 
+// New creates a new executor that processes tasks and returns results.
+//
+// Parameters:
+// - ctx: The context for managing the lifecycle of the executor.
+// - consumer: The function to process each task and return a result.
+// - workers: Optional number of workers to process tasks concurrently.
+//
+// Returns:
+// - A pointer to the created executor.
 func New[T any, R any](ctx context.Context, consumer func(context.Context, T) (R, error), workers ...uint) *executor[T, R] {
 	var workerNum int = 16
 	if len(workers) > 0 {
@@ -106,16 +139,31 @@ func (x *executor[T, R]) assign(ctx context.Context, item T, index uint) {
 	x.input.In <- ordered[T]{index: index, data: item, ctx: ctx}
 }
 
+// Assign adds a task to the executor.
+//
+// Parameters:
+// - item: The task to be processed.
 func (x *executor[T, R]) Assign(item T) {
 	index := atomic.AddUint64(&x.assignIndex, 1)
 	x.assign(x.ctx, item, uint(index))
 }
 
+// AssignWithContext adds a task to the executor with a specific context.
+//
+// Parameters:
+// - ctx: The context for the task.
+// - item: The task to be processed.
 func (x *executor[T, R]) AssignWithContext(ctx context.Context, item T) {
 	index := atomic.AddUint64(&x.assignIndex, 1)
 	x.assign(ctx, item, uint(index))
 }
 
+// Next retrieves the next result from the executor.
+//
+// You won't be able to assign new tasks after calling Next.
+//
+// Returns:
+// - ok: A boolean indicating whether a result was retrieved.
 func (x *executor[T, R]) Next() (ok bool) {
 	if atomic.CompareAndSwapInt32(&x.isClosed, 0, 1) {
 		close(x.input.In)
@@ -128,6 +176,10 @@ func (x *executor[T, R]) Next() (ok bool) {
 	return
 }
 
+// Each returns the current result from the executor.
+//
+// Returns:
+// - result: The current result.
 func (x *executor[T, R]) Each() (result R) {
 	if x.err != nil && x.abortOnError {
 		return
@@ -136,6 +188,10 @@ func (x *executor[T, R]) Each() (result R) {
 	return
 }
 
+// Index returns the index of the current result in relation to the order of assigned tasks.
+//
+// Returns:
+// - The index of the current result.
 func (x *executor[T, R]) Index() uint {
 	if x.err != nil && x.abortOnError {
 		return 0
@@ -143,6 +199,10 @@ func (x *executor[T, R]) Index() uint {
 	return x.index
 }
 
+// Error returns any error encountered during the execution of tasks.
+//
+// Returns:
+// - The error encountered, or nil if no error occurred.
 func (x *executor[T, R]) Error() error {
 	if x.err == nil {
 		x.err = context.Cause(x.ctx)
