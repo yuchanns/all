@@ -1,5 +1,7 @@
 ## 🚀 all: A Parallelism Tool for Go
 
+[![Go Reference](https://pkg.go.dev/badge/go.yuchanns.xyz/all.svg)](https://pkg.go.dev/go.yuchanns.xyz/all) ![Behavior Test](https://github.com/yuchanns/all/actions/workflows/behavior_test.yaml/badge.svg?branch=main)
+
 **all** is a powerful parallelism tool for Go. It offers an easy way to run multiple goroutines concurrently and gather all the results together seamlessly.
 
 ### 📦 Installation
