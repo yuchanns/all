@@ -44,19 +44,23 @@ func consumer(ctx context.Context, in int) (out string, err error) {
 	}
 }
 
-func TestAllowError(t *testing.T) {
+func TestPersist(t *testing.T) {
 	t.Parallel()
 
 	x := all.NewVoid(ctx, func(ctx context.Context, in int) error {
 		time.Sleep(time.Second * time.Duration(in))
+		if in < 2 {
+			return nil
+		}
 		return fmt.Errorf("error %d", in)
 	})
 	all.Persist(x)
 	for i := 0; i < 3; i++ {
 		x.Assign(i)
 	}
-	_, err := all.Collect(x, false)
+	results, err := all.Collect(x, false)
 	require.NotNil(t, err)
+	require.Equal(t, 2, len(results))
 }
 
 func TestCollectVoid(t *testing.T) {
