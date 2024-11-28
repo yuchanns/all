@@ -44,6 +44,31 @@ func consumer(ctx context.Context, in int) (out string, err error) {
 	}
 }
 
+func TestAssign(t *testing.T) {
+	t.Parallel()
+
+	x := all.New(ctx, consumer)
+
+	var bulk = []int{1, 2, 3, 4, 5}
+	var hash = map[int]int{0: 6, 1: 7}
+	var expected []string
+	for _, v := range bulk {
+		expected = append(expected, fmt.Sprintf("%d", v))
+	}
+	for _, v := range hash {
+		expected = append(expected, fmt.Sprintf("%d", v))
+	}
+
+	all.BulkAssign(x, bulk)
+	all.HashAssign(x, hash)
+	results, err := all.Collect(x, false)
+	require.Nil(t, err)
+
+  slices.Sort(expected)
+  slices.Sort(results)
+  require.Equal(t, expected, results)
+}
+
 func TestPersist(t *testing.T) {
 	t.Parallel()
 

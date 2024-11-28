@@ -49,3 +49,17 @@ func Collect[T any, R any](x *executor[T, R], descending bool) (results []R, err
 func Persist[T any, R any](x *executor[T, R]) {
 	x.abortOnError = false
 }
+
+// BulkAssign assigns a slice of data to the executor.
+func BulkAssign[T any, R any](x *executor[T, R], data []T) {
+	for i := range data {
+		x.Assign(data[i])
+	}
+}
+
+// HashAssign assigns a map of data to the executor.
+func HashAssign[T any, R any, K comparable](x *executor[T, R], data map[K]T) {
+	for k := range data {
+		x.Assign(data[k])
+	}
+}
