@@ -62,6 +62,8 @@ results, err := all.Collect(x)
 all.Persist(x)
 ```
 
+See [tests](./pkg_test.go) for more examples.
+
 ### 📜 License
 [Apache License 2.0](LICENSE)
 
